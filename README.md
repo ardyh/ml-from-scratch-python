@@ -1,2 +1,2 @@
-# tubes1a-ml
-Tubes 1A IF3270-ML, Eksplorasi variasi algoritma decision tree learning
+# tubes1-ml
+Tubes 1 IF3270-ML, Eksplorasi variasi algoritma decision tree dan neural network dasar
