@@ -23,6 +23,7 @@ class Tree:
         self.root_value = root_value
         self.use_info_gain = use_info_gain
         self.ruleset = []
+        self.accuracy_ori = None
     
     #cari entropi total pada data
     def total_entropy(self, data):
@@ -39,6 +40,8 @@ class Tree:
         proportion_kolom = data[kolom].value_counts()/len(data)
         sum_entropy_kolom = 0
         for value_kolom, value_proportion in zip(proportion_kolom.index.tolist(), proportion_kolom.tolist()):
+            #print("here checking")
+            #print(data[data[kolom] == value_kolom])
             entropy_value_kolom = self.total_entropy(data[data[kolom] == value_kolom])
             sum_entropy_kolom -= value_proportion*entropy_value_kolom
             
@@ -116,12 +119,12 @@ class Tree:
         
         #basis-1: jika data terbagi dg sempurna
         if(self.data[self.target_attr].nunique() == 1):
-            self.root = Node("none", "none", "none", is_leaf=True, leaf_value=self.data[self.target_attr].unique()[0], parent_value=self.root_value)
+            self.root = Node("none", "none", self.target_attr, is_leaf=True, leaf_value=self.data[self.target_attr].unique()[0], parent_value=self.root_value)
             return self.root
         
         #basis-2: jika tidak ada atribut
         if(len(data_X.columns) == 0):
-            self.root = Node("none", "none", "none", is_leaf=True, leaf_value=self.data[self.target_attr].mode().values[0], parent_value=self.root_value)
+            self.root = Node("none", "none", self.target_attr, is_leaf=True, leaf_value=self.data[self.target_attr].mode().values[0], parent_value=self.root_value)
             return self.root
         
         #rekurens, jika data tidak bisa mjd leaf
@@ -187,15 +190,15 @@ class Tree:
             print('-------tree-------')
             dash = ''
         else:
-            dash = '|' + '-'*space + '>'
+            dash = '|' + '-'*space + '(' + node.parent_value + ')' + '-'*space + '>'
             
         if(node.is_leaf):
-            output = ('|' + (' '*space))*(depth-1) + dash + '{' + str(node.leaf_value) + '}'
+            output = ('|' + ('      '*space))*(depth-1) + dash + '{class : ' + str(node.leaf_value) + '}'
         else:
-            output = ('|' + (' '*space))*(depth-1) + dash + node.split_attr 
+            output = ('|' + ('      '*space))*(depth-1) + dash + node.split_attr 
         
         if (node.parent_value):
-            output = output + '    (' + node.parent_value + ')'
+            output = output 
         
         print(output)
         
@@ -235,7 +238,7 @@ class Tree:
             #get prediction untuk instance yang dicek, lalu append ke hasil
             pred_result.append(self.get_prediction_result(prediction_instance, self.root))
         return pred_result
-
+    
     #transformasi tree menjadi kumpulan rule
     def recursively_write_rule(self, node, rule):
         #basis - mencapai leaf. Append rule ke ruleset

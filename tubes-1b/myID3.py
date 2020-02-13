@@ -22,6 +22,8 @@ class Tree:
         self.root = None
         self.root_value = root_value
         self.use_info_gain = use_info_gain
+        self.ruleset = []
+        self.accuracy_ori = None
     
     #cari entropi total pada data
     def total_entropy(self, data):
@@ -38,6 +40,8 @@ class Tree:
         proportion_kolom = data[kolom].value_counts()/len(data)
         sum_entropy_kolom = 0
         for value_kolom, value_proportion in zip(proportion_kolom.index.tolist(), proportion_kolom.tolist()):
+            #print("here checking")
+            #print(data[data[kolom] == value_kolom])
             entropy_value_kolom = self.total_entropy(data[data[kolom] == value_kolom])
             sum_entropy_kolom -= value_proportion*entropy_value_kolom
             
@@ -72,12 +76,12 @@ class Tree:
         
         #basis-1: jika data terbagi dg sempurna
         if(self.data[self.target_attr].nunique() == 1):
-            self.root = Node("none", "none", "none", is_leaf=True, leaf_value=self.data[self.target_attr].unique()[0], parent_value=self.root_value)
+            self.root = Node("none", "none", self.target_attr, is_leaf=True, leaf_value=self.data[self.target_attr].unique()[0], parent_value=self.root_value)
             return self.root
         
         #basis-2: jika tidak ada atribut
         if(len(data_X.columns) == 0):
-            self.root = Node("none", "none", "none", is_leaf=True, leaf_value=self.data[self.target_attr].mode().values[0], parent_value=self.root_value)
+            self.root = Node("none", "none", self.target_attr, is_leaf=True, leaf_value=self.data[self.target_attr].mode().values[0], parent_value=self.root_value)
             return self.root
         
         #rekurens, jika data tidak bisa mjd leaf
@@ -90,16 +94,8 @@ class Tree:
                 if(self.is_attr_categorical(attr)):
                     if(self.use_info_gain):
                         current_metric = self.info_gain(attr)
-                #jika kolom numerik
-                else:
-                    #sort data
-                    sorted_data = self.data.sort_values(by=attr)
-                    #cari split-split yang memungkinkan 
-                    pos_splits = self.find_possible_splits_continuous(sorted_data, attr)
-                    #hitung gain dari tiap continuous split dan cari nilai optimum
-                    split_value_continuous = self.find_optimum_split_continuous(pos_splits, sorted_data, attr)
-                    #hitung gain ketika sudah diketahui nilai optimum
-                    current_metric = self.calculate_info_gain_continuous(split_value_continuous, sorted_data, attr)
+                    else:
+                        current_metric = self.gain_ratio(attr)
 
                 #jika ditemukan maximum info gain di kolom tertentu
                 if(current_metric > max_metric):
@@ -121,17 +117,6 @@ class Tree:
                     filtered_data = self.data[self.data[split_attr] == split_value].drop(split_attr, axis=1)
                     self.root.add_child(Tree(filtered_data, self.target_attr, root_value=split_value).make_tree())
 
-            #jika atribut terpilih == numerik & kontinu
-            else:
-                self.root = Node(self.data, split_attr, self.target_attr, is_continuous=True, split_value_continuous=split_value_attr, parent_value=self.root_value)
-                #filter <=
-                filtered_data = self.data[self.data[split_attr] <= split_value_attr].drop(split_attr, axis=1)
-                self.root.add_child(Tree(filtered_data, self.target_attr, root_value="<="+str(split_value_attr)).make_tree())
-
-                #filter >
-                filtered_data = self.data[self.data[split_attr] > split_value_attr].drop(split_attr, axis=1)
-                self.root.add_child(Tree(filtered_data, self.target_attr, root_value=">"+str(split_value_attr)).make_tree())
-
             return self.root
 
     def print_tree(self, node, depth, space):
@@ -139,15 +124,15 @@ class Tree:
             print('-------tree-------')
             dash = ''
         else:
-            dash = '|' + '-'*space + '>'
+            dash = '|' + '-'*space + '(' + node.parent_value + ')' + '-'*space + '>'
             
         if(node.is_leaf):
-            output = ('|' + (' '*space))*(depth-1) + dash + '{' + str(node.leaf_value) + '}'
+            output = ('|' + ('      '*space))*(depth-1) + dash + '{class : ' + str(node.leaf_value) + '}'
         else:
-            output = ('|' + (' '*space))*(depth-1) + dash + node.split_attr 
+            output = ('|' + ('      '*space))*(depth-1) + dash + node.split_attr 
         
         if (node.parent_value):
-            output = output + '    (' + node.parent_value + ')'
+            output = output 
         
         print(output)
         
@@ -169,6 +154,12 @@ class Tree:
                     if (child.parent_value == prediction_instance[node.split_attr]):
                         return self.get_prediction_result(prediction_instance, child)
                         break
+            #jika node numerik/kontinu
+            else:
+                if(prediction_instance[node.split_attr] <= node.split_values[0]):
+                    return self.get_prediction_result(prediction_instance, node.childs[0])
+                elif(prediction_instance[node.split_attr] > node.split_values[0]):
+                    return self.get_prediction_result(prediction_instance, node.childs[1])
                 
     #prediksi suatu dataset test
     def predict(self, test_data):
