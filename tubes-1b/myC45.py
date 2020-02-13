@@ -311,3 +311,56 @@ class Tree:
 
         sorted_rule = sorted(sorted_rule.items(), key=lambda kv: kv[1])
         return sorted_rule
+    
+    #rekurens accuracy_tree
+    #return 0 jika salah
+    #return 1 jika benar
+    def check_result(self, check_instance, node):
+        #basis - jika node merupakan leaf, kembalikan value
+        if(node.is_leaf):
+                return node.leaf_value == check_instance[node.target_attr]
+        #rekurens - jika node bukan leaf, cari anak
+        else:
+            #jika node categorical
+            if(node.is_attr_categorical()):
+                for child in node.childs:
+                    if (child.parent_value == check_instance[node.split_attr]):
+                        return self.check_result(check_instance, child)
+                        break
+                        
+            #jika node numerik/kontinu
+            else:
+                if(check_instance[node.split_attr] <= node.split_values[0]):
+                    return self.check_result(check_instance, node.childs[0])
+                elif(check_instance[node.split_attr] > node.split_values[0]):
+                    return self.check_result(check_instance, node.childs[1])
+
+    def accuracy_tree(self, test_data):
+        success = 0;
+        #iterasi seluruh instance pada test_data
+        for i in range(len(test_data)):
+            #instance untuk di prediksi
+            success += self.check_result(test_data.iloc[i], self.root)
+        return success/len(test_data)*100
+    
+    def pruning_rek(self, parent, node_child, test_data):
+        if(parent==self.root):
+            pass
+        #basis jika node adalah leaf bandingkan akurasi pruned tree dan original tree
+        elif(node_child.is_leaf):
+            parent.is_leaf=True
+            parent.leaf_value = parent.data[node_child.target_attr].mode().values[0]
+            if(self.accuracy_tree(test_data)<self.accuracy_ori):
+                parent.is_leaf=False
+                parent.leaf_value = None
+            else:
+                parent.childs.clear()
+                self.accuracy_ori = self.accuracy_tree(test_data)
+        else :
+            return self.pruning_rek(node_child,node_child.childs[0],test_data)    
+            
+    def post_pruning(self, data_val):
+        self.accuracy_ori=self.accuracy_tree(data_val)
+        for child in self.root.childs:
+            if(not(child.is_leaf)):
+                self.pruning_rek(child, child.childs[0], data_val)
