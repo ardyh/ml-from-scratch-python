@@ -22,6 +22,7 @@ class Tree:
         self.root = None
         self.root_value = root_value
         self.use_info_gain = use_info_gain
+        self.ruleset = []
     
     #cari entropi total pada data
     def total_entropy(self, data):
@@ -234,3 +235,79 @@ class Tree:
             #get prediction untuk instance yang dicek, lalu append ke hasil
             pred_result.append(self.get_prediction_result(prediction_instance, self.root))
         return pred_result
+
+    #transformasi tree menjadi kumpulan rule
+    def recursively_write_rule(self, node, rule):
+        #basis - mencapai leaf. Append rule ke ruleset
+        if(node.is_leaf):
+            new_rule = rule + [[self.target_attr, node.leaf_value]]
+            self.ruleset.append(new_rule)
+        
+        #rekurens - mencatat current precondition dan telusuri anak-anaknya
+        else:
+            for child in node.childs:
+                new_rule = rule + [[node.split_attr, child.parent_value]]
+                self.recursively_write_rule(child, new_rule)
+    
+    #parsing rule menjadi query
+    def parse_rule(self, rule):
+        str_rule = ''
+        for statement in rule[:-1]:
+            #categorical variable
+            if (statement[1][0] != "<") and (statement[1][0] != ">"):
+                str_rule += statement[0] + ' == "' + statement[1] + '" and '
+            else:
+                str_rule += statement[0] + statement[1] + ' and '
+        return str_rule[:-4]
+    
+    #kalkulasi akurasi suatu rule
+    def calculate_rule_accuracy(self, rule):
+        query = self.parse_rule(rule)
+        filtered_data = self.data_test.query(query)
+        target_value = rule[-1][1]
+        num_correct_answers = len(filtered_data[filtered_data[self.target_attr] == target_value])
+        if(len(filtered_data) == 0):
+            return 0
+        else:
+            return float(num_correct_answers)/float(len(filtered_data))
+    
+    #pruning untuk suatu rule
+    def prune_rule(self, rule, prev_accuracy):
+        if(len(rule) > 2):
+            optimal_rule = []
+            max_accuracy = -1
+            for statement in rule[:-1]:
+                temp_rule = rule.copy()
+                temp_rule.remove(statement)
+                accuracy = self.calculate_rule_accuracy(temp_rule)
+                if accuracy > max_accuracy:
+                    max_accuracy = accuracy
+                    optimal_rule = temp_rule
+
+            #basis - akurasi tidak improve
+            if((max_accuracy <= prev_accuracy) or (len(rule) == 0)):
+                return (optimal_rule, rule[-1][-1], max_accuracy)
+            #rekurens - akurasi masih bisa dinaikkan dengan pruning
+            else:
+                return self.prune_rule(optimal_rule, max_accuracy)
+        else:
+            return (rule, rule[-1][-1], self.calculate_rule_accuracy(rule))
+    
+    #post-pruning
+    def rule_post_pruning(self, data_test):
+        print('-------rules-------')
+        #definisikan rules yang ada
+        #lakukan DFS pada tree sampai leaf. Catat semua rule yang ada
+        self.recursively_write_rule(self.root, [])
+        
+        #set data test
+        self.data_test = data_test
+        
+        #prune rule
+        sorted_rule = {}
+        for i, rule in enumerate(self.ruleset):
+            pruned_rule, label, accuracy = (self.prune_rule(rule, -1))
+            sorted_rule[self.parse_rule(pruned_rule)+'; label: '+str(label)] = accuracy
+
+        sorted_rule = sorted(sorted_rule.items(), key=lambda kv: kv[1])
+        return sorted_rule

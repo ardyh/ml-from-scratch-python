@@ -41,4 +41,18 @@ def main():
     test_data = iris_data.sort_values(by='sepal_width').tail(10)
     print(tree_iris.predict(test_data))
 
+    #prune iris tree
+    #initialize train and test data
+    randomized_iris_data = iris_data.sample(frac=1).reset_index().drop('index', axis=1)
+    iris_train_data = randomized_iris_data.iloc[0:120]
+    iris_test_data = randomized_iris_data.iloc[120:]
+    #make pruned tree
+    prune_tree = tree_myC45(iris_train_data, 'label')
+    root_prune_tree = prune_tree.make_tree()
+    prune_tree.print_tree(root_prune_tree, 0, 2)
+    pruned_rules = prune_tree.rule_post_pruning(iris_test_data)
+    #printing pruned tree
+    for pruned_rule in pruned_rules:
+        print(pruned_rule[0])
+
 main()
