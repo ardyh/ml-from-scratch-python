@@ -19,9 +19,9 @@ class Network:
   
   # Calculate net for an input
   def calculate_net(self, weights, inputs):
-    net = weights[0]
-    for i in range(len(weights)-1):
-      net += weights[i+1] * inputs[i+1]
+    net = 0
+    for i in range(len(weights)):
+      net += weights[i] * inputs[i]
     return net
 
   # Neuron activation
@@ -32,5 +32,5 @@ class Network:
 net = Network(3,3,3)
 net.initialize_network()
 # print(net.input_weight_hidden[0])
-inputs = [1,1,2,3]
+inputs = [1,1,2,3]  # element [0] is bias
 print(net.activate(net.input_weight_hidden[0], inputs))
