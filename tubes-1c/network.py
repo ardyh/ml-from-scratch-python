@@ -24,10 +24,11 @@ class Network:
   #   self.weight_hidden_output = [[random() for i in range(self.n_hidden+1)] for j in range(self.n_outputs)]
   
   # Calculate net for an input
-  def calculate_net_ItoH(self, inputs, weights, sample, node):
-    return np.dot(inputs[sample,:], weights[:, node])
+  def calculate_net_ItoH(self, sample, node):
+    return np.dot(self.data[sample,:], self.weights_ItoH[:, node])
   # Calculate net for a hidden unit
-  def calculate_net_HtoO(self)
+  def calculate_net_HtoO(self, node):
+    return np.dot(self.post_activation_H, self.weights_HtoO[:, node])
 
   # Neuron activation
   def activation(self, x):
@@ -52,14 +53,14 @@ class Network:
         ## iterate every hidden layer to fill the values
         for hidden_unit in range(self.n_hidden):
           ### calculate the net input
-          self.pre_activation_H[hidden_unit] = self.calculate_net(self.data, self.weights_ItoH, instance, hidden_unit)
+          self.pre_activation_H[hidden_unit] = self.calculate_net_ItoH(instance, hidden_unit)
           ### calculate the activated value
           self.post_activation_H[hidden_unit] = self.activation(self.pre_activation_H[hidden_unit])
 
         # From hidden layer to output layer
         for output_unit in range(self.n_outputs):
           ### calculate the net input
-          self.pre_activation_O[output_unit] = self.calculate_net(self.data, self.weights_ItoH, instance, output_unit)
+          self.pre_activation_O[output_unit] = self.calculate_net_HtoO(self.data, self.weights_ItoH, instance, output_unit)
           ### calculate the activated value
           self.post_activation_H[output_unit] = self.activation(self.pre_activation_H[output_unit])
 
