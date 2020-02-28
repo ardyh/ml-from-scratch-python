@@ -4,10 +4,12 @@ from math import exp
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder
+from sklearn.datasets import load_iris
 
+f = open("output.txt", "w")
 
 class Network:
-  #konstruktor
+  #constructor
   def __init__(self, n_inputs, n_hidden, n_outputs=3, bias=1):
     self.n_inputs = n_inputs # number of input unit
     self.n_hidden = n_hidden # number of hidden unit
@@ -44,16 +46,13 @@ class Network:
 
   # activation function
   def activation(self, x):
-  	return 1.0/(1 + np.exp(-x))
-  
-  # Derivation of activation function
-  def activation_deriv(self, x):
-    return activation(x) * (1 - activation(x))
+  	return 1.0/(1.0 + np.exp(-x))
 
   def one_hot_encode(self, target):
     encoder = OneHotEncoder(sparse=False)
     new_target = target.reshape(len(target), 1)
     target_encode = encoder.fit_transform(new_target)
+    return target_encode
 
   #fit the network to the data
   def fit(self, data, target, epoch_limit=100, mini_batch_limit=10):
@@ -65,12 +64,12 @@ class Network:
 
     # iterate each epoch
     for epoch in range(epoch_limit):
-      
+
       #iterate each instance
       mini_batch_count = 0
-      for instance in range(3):
+      for instance in range(len_data):
+            
         # From input layer to hidden layer
-        
         ## iterate every hidden layer to fill the values
         for hidden_unit in range(self.n_hidden):
           ### calculate the net input
@@ -86,9 +85,10 @@ class Network:
           self.post_activation_O[output_unit] = self.activation(self.pre_activation_O[output_unit])
       
         #for debug
-        print('INSTANCE:', instance )
-        print('WEIGHTS\n', self.weights_ItoH, '\n', self.weights_HtoO)
-        print('OUTPUTS\n', self.post_activation_H, '\n', self.post_activation_O)
+
+        f.write("EPOCH: " + str(epoch) + ', INSTANCE: ' + str(instance) + '\n' )
+        f.write('WEIGHTS\n' + str(self.weights_ItoH) + '\n' + str(self.weights_HtoO) + '\n')
+        f.write('OUTPUTS\n' + str(self.post_activation_H) + '\n' + str(self.post_activation_O) + '\n')
 
         # Backpropagation
         ## if already at minibatch limit or at the last instance, update the weight 
@@ -160,10 +160,35 @@ class Network:
         self.pre_activation_O[output_unit] = self.calculate_net_HtoO(output_unit)
         ### calculate the activated value
         self.post_activation_O[output_unit] = self.activation(self.pre_activation_O[output_unit])
-        if(self.post_activation_O(output_unit) >= max_value ):
-          max_value = self.post_activation_O
+        if(self.post_activation_O[output_unit] >= max_value ):
+          max_value = self.post_activation_O[output_unit]
           max_index = output_unit
-      result.append(max_index)
+      
+      print(self.post_activation_O)
+      print('instance no:', instance, 'prediction result:', max_index)
+      result = np.append(result, max_index)
     
-    return result
-    
+    return result 
+
+# Training
+print('Data Iris')
+load, target = load_iris(return_X_y=True)
+iris_data = pd.DataFrame(load, columns=['sepal_length', 'sepal_width', 'petal_length', 'petal_width'])
+iris_data['label'] = pd.Series(target)
+
+shuffled_data = iris_data.copy().sample(frac=1)
+train_X = shuffled_data.drop('label',axis=1,inplace=False).values
+train_y = shuffled_data['label'].values
+
+net = Network(4, 4)
+net.fit(load, target, epoch_limit=500)
+
+#Testing
+shuffled_data = iris_data.sample(n=20)
+test_X = shuffled_data.drop('label',axis=1,inplace=False).values
+test_y = shuffled_data['label'].values
+
+result = net.predict(test_X)
+print("Pred Result\n", result, sep='')
+print("Original Data\n", test_y, sep='')
+f.close()
