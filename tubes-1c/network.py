@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.datasets import load_iris
+from sklearn.neural_network import MLPClassifier # neural network
 
 f = open("output.txt", "w")
 
@@ -83,7 +84,7 @@ class Network:
           ### calculate the net input
           self.pre_activation_O[output_unit] = self.calculate_net_HtoO(output_unit)
           ### calculate the activated value
-          self.post_activation_O[output_unit] = self.activation(self.pre_activation_O[output_unit])``
+          self.post_activation_O[output_unit] = self.activation(self.pre_activation_O[output_unit])
 
         # Backpropagation
         ## if already at minibatch limit or at the last instance, update the weight 
@@ -194,3 +195,9 @@ result = net.predict(test_X)
 print("Pred Result\n", result, sep='')
 print("Original Data\n", test_y, sep='')
 f.close()
+
+# Prediction with MLPClassifier
+clf = MLPClassifier(solver='lbfgs', , random_state=1, learning_rate='constant', learning_rate_init=0.1)
+clf.fit(test_X, test_y)
+prediction_clf = clf.predict(test_X)
+print(prediction_clf)
