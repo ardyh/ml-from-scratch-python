@@ -139,3 +139,31 @@ class Network:
 
           mini_batch_count += 1
         
+
+  def predict(self, data):
+    self.data = data
+    result = np.zeros(len(data))
+    #iterate each instance
+    for instance in range(len(data)):      
+      ## iterate every hidden layer to fill the values
+      for hidden_unit in range(self.n_hidden):
+        ### calculate the net input
+        self.pre_activation_H[hidden_unit] = self.calculate_net_ItoH(instance, hidden_unit)
+        ### calculate the activated value
+        self.post_activation_H[hidden_unit] = self.activation(self.pre_activation_H[hidden_unit])
+
+      max_value = 0
+      max_index = -1 
+      # From hidden layer to output layer
+      for output_unit in range(self.n_outputs):
+        ### calculate the net input
+        self.pre_activation_O[output_unit] = self.calculate_net_HtoO(output_unit)
+        ### calculate the activated value
+        self.post_activation_O[output_unit] = self.activation(self.pre_activation_O[output_unit])
+        if(self.post_activation_O(output_unit) >= max_value ):
+          max_value = self.post_activation_O
+          max_index = output_unit
+      result.append(max_index)
+    
+    return result
+    
