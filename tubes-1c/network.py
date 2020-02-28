@@ -197,7 +197,8 @@ print("Original Data\n", test_y, sep='')
 f.close()
 
 # Prediction with MLPClassifier
-clf = MLPClassifier(solver='lbfgs', , random_state=1, learning_rate='constant', learning_rate_init=0.1)
+print("Prediction with MLP Classifier")
+clf = MLPClassifier(solver='lbfgs', random_state=1, learning_rate='constant', learning_rate_init=0.1)
 clf.fit(test_X, test_y)
 prediction_clf = clf.predict(test_X)
 print(prediction_clf)
