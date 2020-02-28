@@ -171,7 +171,27 @@ class Network:
       print('instance no:', instance, 'prediction result:', max_index)
       result = np.append(result, max_index)
     
-    return result 
+    return result
+
+  #print weight  
+  def print_w_ItoH(self):
+    index=[]
+    for n in range(self.n_inputs+1):
+      index.append('WInput'+str(n))
+    column=[]
+    for n in range(self.n_hidden):
+      column.append('Hidden'+str(n))
+    return pd.DataFrame(net.weights_ItoH,index,column)
+    
+  #print weight  
+  def print_w_HtoO(self):
+    index=[]
+    for n in range(self.n_hidden+1):
+      index.append('WHidden'+str(n))
+    column=[]
+    for n in range(self.n_outputs):
+      column.append('Output'+str(n))
+    return pd.DataFrame(net.weights_HtoO,index,column) 
 
 # Training
 print('Data Iris')
