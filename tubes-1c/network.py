@@ -10,11 +10,12 @@ f = open("output.txt", "w")
 
 class Network:
   #constructor
-  def __init__(self, n_inputs, n_hidden, n_outputs=3, bias=1):
+  def __init__(self, n_inputs, n_hidden, n_outputs=3, bias=1, learning_rate=0.1):
     self.n_inputs = n_inputs # number of input unit
     self.n_hidden = n_hidden # number of hidden unit
     self.n_outputs = n_outputs # number of output unit
     self.bias = bias # bias parameter
+    self.learning_rate = learning_rate
     
     # parameters of weight on input to hidden layer 
     self.weights_ItoH = np.random.uniform(-1, 1, (n_inputs+1, n_hidden)) 
@@ -82,23 +83,22 @@ class Network:
           ### calculate the net input
           self.pre_activation_O[output_unit] = self.calculate_net_HtoO(output_unit)
           ### calculate the activated value
-          self.post_activation_O[output_unit] = self.activation(self.pre_activation_O[output_unit])
-      
-        #for debug
-
-        f.write("EPOCH: " + str(epoch) + ', INSTANCE: ' + str(instance) + '\n' )
-        f.write('WEIGHTS\n' + str(self.weights_ItoH) + '\n' + str(self.weights_HtoO) + '\n')
-        f.write('OUTPUTS\n' + str(self.post_activation_H) + '\n' + str(self.post_activation_O) + '\n')
+          self.post_activation_O[output_unit] = self.activation(self.pre_activation_O[output_unit])``
 
         # Backpropagation
         ## if already at minibatch limit or at the last instance, update the weight 
         if((mini_batch_count == mini_batch_limit) or (instance == len_data - 1)):
-          #update weight - hidden to output
-          self.weights_HtoO = np.add(self.weights_HtoO, self.dweights_HtoO)
           
           #update weight - input to hidden
           self.weights_ItoH = np.add(self.weights_ItoH, self.dweights_ItoH)
+          #update weight - hidden to output
+          self.weights_HtoO = np.add(self.weights_HtoO, self.dweights_HtoO)
 
+          #reset delta weight to zero
+          self.dweights_ItoH = np.zeros((self.n_inputs+1, self.n_hidden))
+          self.dweights_HtoO = np.zeros((self.n_hidden+1, self.n_outputs))
+
+          #reset iterator
           mini_batch_count = 0
         
         ## if below minibatch limit, update delta-weight
@@ -117,8 +117,8 @@ class Network:
               else:
                 out_h = self.post_activation_H[hidden_unit]
 
-              self.error_O[output_unit] = (target_o - out_o) * out_o * (1 - out_o)
-              self.dweights_HtoO[hidden_unit][output_unit] += self.error_O[output_unit] * out_h
+              self.error_O[output_unit] = (target_o - out_o) * out_o * (1 - out_o) 
+              self.dweights_HtoO[hidden_unit][output_unit] += self.error_O[output_unit] * out_h * self.learning_rate
 
           ### update delta-weight from hidden layer
           for input_unit in range(self.n_inputs + 1): # (+1 accomodating bias)
@@ -134,15 +134,17 @@ class Network:
               else:
                 input_i = self.data[instance, input_unit] 
               
-              self.error_H[hidden_unit] = sigma_err_output * out_h * (1 - out_h)
-              self.dweights_ItoH[input_unit][hidden_unit] += self.error_H[hidden_unit] * input_i
-
+              self.error_H[hidden_unit] = sigma_err_output * out_h * (1 - out_h) 
+              self.dweights_ItoH[input_unit][hidden_unit] += self.error_H[hidden_unit] * input_i * self.learning_rate
+          
+          #increment iterator
           mini_batch_count += 1
+        
         
 
   def predict(self, data):
     self.data = data
-    result = np.zeros(len(data))
+    result = []
     #iterate each instance
     for instance in range(len(data)):      
       ## iterate every hidden layer to fill the values
@@ -181,7 +183,7 @@ train_X = shuffled_data.drop('label',axis=1,inplace=False).values
 train_y = shuffled_data['label'].values
 
 net = Network(4, 4)
-net.fit(load, target, epoch_limit=500)
+net.fit(load, target, epoch_limit=100)
 
 #Testing
 shuffled_data = iris_data.sample(n=20)
