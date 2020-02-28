@@ -181,8 +181,8 @@ class Network:
     column=[]
     for n in range(self.n_hidden):
       column.append('Hidden'+str(n))
-    return pd.DataFrame(net.weights_ItoH,index,column)
-    
+    print(pd.DataFrame(net.weights_ItoH,index,column))
+
   #print weight  
   def print_w_HtoO(self):
     index=[]
@@ -191,7 +191,7 @@ class Network:
     column=[]
     for n in range(self.n_outputs):
       column.append('Output'+str(n))
-    return pd.DataFrame(net.weights_HtoO,index,column) 
+    print(pd.DataFrame(net.weights_HtoO,index,column)) 
 
 # Training
 print('Data Iris')
@@ -223,3 +223,9 @@ mlp.fit(test_X, test_y)
 # print(clf.coefs_)
 prediction_mlp = mlp.predict(test_X)
 print(prediction_mlp)
+
+#print weight
+print("Weight from input to hidden")
+net.print_w_ItoH()
+print("Weight from hidden to output")
+net.print_w_HtoO()
