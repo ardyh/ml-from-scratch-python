@@ -7,8 +7,6 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.datasets import load_iris
 from sklearn.neural_network import MLPClassifier # neural network
 
-f = open("output.txt", "w")
-
 class Network:
   #constructor
   def __init__(self, n_inputs, n_hidden, n_outputs=3, bias=1, learning_rate=0.1):
@@ -167,8 +165,6 @@ class Network:
           max_value = self.post_activation_O[output_unit]
           max_index = output_unit
       
-      print(self.post_activation_O)
-      print('instance no:', instance, 'prediction result:', max_index)
       result = np.append(result, max_index)
     
     return result
@@ -194,12 +190,11 @@ class Network:
     print(pd.DataFrame(net.weights_HtoO,index,column)) 
 
 # Training
-print('Data Iris')
 load, target = load_iris(return_X_y=True)
 iris_data = pd.DataFrame(load, columns=['sepal_length', 'sepal_width', 'petal_length', 'petal_width'])
 iris_data['label'] = pd.Series(target)
 
-shuffled_data = iris_data.copy().sample(frac=1)
+shuffled_data = iris_data.copy().sample(frac=0.8)
 train_X = shuffled_data.drop('label',axis=1,inplace=False).values
 train_y = shuffled_data['label'].values
 
@@ -207,25 +202,99 @@ net = Network(4, 4)
 net.fit(load, target, epoch_limit=100)
 
 #Testing
-shuffled_data = iris_data.sample(n=20)
-test_X = shuffled_data.drop('label',axis=1,inplace=False).values
-test_y = shuffled_data['label'].values
+shuffled_test_data = iris_data[~iris_data.index.isin(shuffled_data.index)]
+test_X = shuffled_test_data.drop('label',axis=1,inplace=False).values
+test_y = shuffled_test_data['label'].values
 
+print("-------------------myMLP-------------------")
 result = net.predict(test_X)
-print("Pred Result\n", result, sep='')
-print("Original Data\n", test_y, sep='')
-f.close()
 
-# Prediction with MLPClassifier
-print("Prediction with MLP Classifier")
-mlp = MLPClassifier(solver='adam', random_state=1, max_iter=500, batch_size=10, learning_rate='constant', learning_rate_init=0.1)
-mlp.fit(test_X, test_y)
-# print(clf.coefs_)
-prediction_mlp = mlp.predict(test_X)
-print(prediction_mlp)
-
-#print weight
 print("Weight from input to hidden")
 net.print_w_ItoH()
+print("")
+
 print("Weight from hidden to output")
 net.print_w_HtoO()
+print("")
+
+print("Hasil Prediksi")
+print([int(x) for x in result])
+print("")
+
+print("Data Validasi")
+print([x for x in test_y])
+print("")
+
+print("Akurasi Prediksi")
+sum_true = 0
+for x, y in zip(result, test_y):
+    if(x == y):
+        sum_true += 1
+print(round(float(sum_true)*100/float(len(result)),3), '%', sep='')
+print("\n")
+
+# Prediction with MLPClassifier
+print("------------MLP Classifier with solver=adam------------")
+mlp1 = MLPClassifier(solver='adam', random_state=1, max_iter=500, batch_size=10, hidden_layer_sizes=(4,1),learning_rate='constant', learning_rate_init=0.1)
+mlp1.fit(test_X, test_y)
+
+print("Weight")
+print(mlp1.coefs_)
+prediction_mlp1 = mlp1.predict(test_X)
+print("")
+
+print("Hasil prediksi MLP Classifier")
+print(prediction_mlp1)
+print("")
+
+print("Akurasi Prediksi")
+sum_true = 0
+for x, y in zip(test_y, prediction_mlp1):
+    if(x == y):
+        sum_true += 1
+print(round(float(sum_true)*100/float(len(result)),3), '%', sep='')
+print("\n")
+
+# Prediction with MLPClassifier
+print("------------MLP Classifier with solver=sgd------------")
+mlp2 = MLPClassifier(solver='sgd', random_state=1, max_iter=500, batch_size=10, hidden_layer_sizes=(4,1),learning_rate='constant', learning_rate_init=0.1)
+mlp2.fit(test_X, test_y)
+
+print("Weight")
+print(mlp2.coefs_)
+prediction_mlp2 = mlp2.predict(test_X)
+print("")
+
+print("Hasil prediksi MLP Classifier")
+print(prediction_mlp2)
+print("")
+
+print("Akurasi Prediksi")
+sum_true = 0
+for x, y in zip(test_y, prediction_mlp2):
+    if(x == y):
+        sum_true += 1
+print(round(float(sum_true)*100/float(len(result)),3), '%', sep='')
+print("\n")
+
+# Prediction with MLPClassifier
+print("------------MLP Classifier with solver=lbfgs------------")
+mlp3 = MLPClassifier(solver='lbfgs', random_state=1, max_iter=500, batch_size=10, hidden_layer_sizes=(4,1),learning_rate='constant', learning_rate_init=0.1)
+mlp3.fit(test_X, test_y)
+
+print("Weight")
+print(mlp3.coefs_)
+prediction_mlp3 = mlp3.predict(test_X)
+print("")
+
+print("Hasil prediksi MLP Classifier")
+print(prediction_mlp3)
+print("")
+
+print("Akurasi Prediksi")
+sum_true = 0
+for x, y in zip(test_y, prediction_mlp3):
+    if(x == y):
+        sum_true += 1
+print(round(float(sum_true)*100/float(len(result)),3), '%', sep='')
+print("\n")
