@@ -1,0 +1,8 @@
+[outlook]
+---->Sunny [humidity]
+-------->High {No}
+-------->Normal {Yes}
+---->Overcast {Yes}
+---->Rain [wind]
+-------->Weak {Yes}
+-------->Strong {No}
