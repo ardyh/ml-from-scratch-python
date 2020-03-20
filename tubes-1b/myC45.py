@@ -339,7 +339,7 @@ class Tree:
                     return self.check_result(check_instance, node.childs[1])
 
     def accuracy_tree(self, test_data):
-        success = 0;
+        success = 0
         #iterasi seluruh instance pada test_data
         for i in range(len(test_data)):
             #instance untuk di prediksi

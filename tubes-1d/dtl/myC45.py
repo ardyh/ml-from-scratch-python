@@ -1,4 +1,4 @@
-from node import Node
+from .node import Node
 import pandas as pd
 import numpy as np
 import math
@@ -229,7 +229,6 @@ class Tree:
                 
     #prediksi suatu dataset test
     def predict(self, test_data):
-        print('-------predict-------')
         pred_result = []
         #iterasi seluruh instance pada test_data
         for i in range(len(test_data)):
