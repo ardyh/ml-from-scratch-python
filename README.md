@@ -13,5 +13,5 @@ of implementing supervised learning algorithms from scratch, in Python
 
 [Tubes 1D Folder](/tubes-1d) contains my team's work on applying cross validation to evaluate our model's performance
 
-[Tubes 2A Folder](/tubes-2a) contains my team's work on K-Means Clustering algorithm
+[Tubes 2A Folder](/tubes-2a) contains my team's work on K-Means Clustering and Agglomerative Clustering algorithm
 
