@@ -1,5 +1,4 @@
-# tubes1-ml
-Tubes 1A IF3270-ML
+# ml-from-scratch-python
 
 A campus project of me and my 3 teammates:
 - @alimutaw12
