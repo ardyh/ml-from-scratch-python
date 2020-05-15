@@ -1,7 +1,11 @@
 # tubes1-ml
 Tubes 1A IF3270-ML
 
-A project of mine and 3 of my teammates from university to implement supervised learning algorithms from scratch, in Python
+A campus project of me and my 3 teammates:
+- @alimutaw12
+- @Dandi99
+- @harymunli
+of implementing supervised learning algorithms from scratch, in Python
 
 [Tubes 1B Folder](/tubes-1b) contains my team's work on decision tree algorithm. We applied the ID3 and C4.5 variation
 
